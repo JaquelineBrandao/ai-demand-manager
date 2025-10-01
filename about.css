@@ -1,0 +1,119 @@
+:root {
+  --background-color: #f0f4f9;
+  --text-color: #333;
+  --primary-color: #4285f4;
+  --container-bg: #ffffff;
+  --border-color: #e0e0e0;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.about-container {
+  background-color: var(--container-bg);
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 700px;
+  width: 100%;
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  top: 16px;
+  left: 24px;
+  font-size: 1rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.back-button:hover {
+  text-decoration: underline;
+  color: #357ae8;
+}
+
+.modal-content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  margin-top: 24px; /* Add margin to not overlap with back button */
+}
+
+.modal-description h1 {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  margin-bottom: 16px;
+  padding: 0;
+  border: none;
+  text-align: left;
+}
+
+.modal-description p {
+  line-height: 1.6;
+  margin-bottom: 12px;
+  color: #5f6368;
+}
+
+.modal-participants h3 {
+  font-size: 1.25rem;
+  color: var(--text-color);
+  margin-bottom: 16px;
+}
+
+.participants-list, .participants-list ul {
+  list-style: none;
+  padding-left: 0;
+}
+.participants-list ul {
+  padding-left: 20px;
+  margin-top: 8px;
+}
+.participants-list > li {
+  margin-bottom: 16px;
+}
+.participants-list li {
+  font-size: 0.9rem;
+  color: #5f6368;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  line-height: 1.5;
+}
+.participants-list li strong {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+  body {
+    padding: 16px;
+    align-items: flex-start;
+  }
+  .about-container {
+    padding: 24px;
+  }
+  .modal-content-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}

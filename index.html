@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Assistant</title>
+  <link rel="stylesheet" href="index.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://esm.sh/@google/genai@^0.14.0"
+      }
+    }
+  </script>
+  <script type="module" src="index.tsx"></script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  <div class="main-layout" id="main-layout">
+    <button id="sidebar-open-button" aria-label="Show sidebar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+    </button>
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <button id="sidebar-toggle-button" aria-label="Hide sidebar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+        </button>
+      </div>
+      <div id="sidebar-content">
+        <div class="sidebar-footer">
+          <svg class="logo" width="300" height="32" viewBox="0 0 300 32" xmlns="http://www.w3.org/2000/svg">
+            <rect width="300" height="32" rx="4" fill="#E0E0E0"/>
+            <text x="150" y="20" font-family="Arial, sans-serif" font-size="12" fill="#555" text-anchor="middle">GOVERNO DO ESTADO DA BAHIA</text>
+          </svg>
+        </div>
+        <h2>Créditos de prompts</h2>
+        <!-- Prompt Usage Tracker -->
+        <div id="prompt-usage-tracker">
+          <div class="usage-row">
+            <div class="usage-header">
+              <span>Diário</span>
+              <span id="daily-credits-text">0 / 50</span>
+            </div>
+            <div class="progress-bar-container">
+              <div id="daily-progress-bar" class="progress-bar"></div>
+            </div>
+          </div>
+          <div class="usage-row">
+            <div class="usage-header">
+              <span>Semanal</span>
+              <span id="weekly-credits-text">0 / 250</span>
+            </div>
+            <div class="progress-bar-container">
+              <div id="weekly-progress-bar" class="progress-bar"></div>
+            </div>
+          </div>
+          <div class="usage-row">
+            <div class="usage-header">
+              <span>Mensal</span>
+              <span id="monthly-credits-text">0 / 1000</span>
+            </div>
+            <div class="progress-bar-container">
+              <div id="monthly-progress-bar" class="progress-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h2>Sobre</h2>
+          <button id="about-button" class="about-button-style">Ver detalhes do projeto</button>
+        </div>
+  
+        <h2>Como Usar</h2>
+        <ul>
+          <li>
+            <strong>Escreva sua pergunta:</strong>
+            <span>Digite o que você quer perguntar na caixa de texto.</span>
+          </li>
+          <li>
+            <strong>Anexe um arquivo (opcional):</strong>
+            <span>Clique no ícone de clipe de papel para selecionar um arquivo.</span>
+          </li>
+          <li>
+            <strong>Formatos aceitos:</strong>
+            <span>PDF, XLSX, XLS, CSV e TXT.</span>
+          </li>
+          <li>
+            <strong>Envie sua mensagem:</strong>
+            <span>Clique no botão de seta ou pressione 'Enter' para obter uma resposta.</span>
+          </li>
+        </ul>
+        
+        <h2 id="recommended-prompts-title">Prompts Recomendados</h2>
+        <ul id="recommended-prompts-list">
+          <li data-prompt="TRANSCREVA OS DADOS DO DOCUMENTO. AS COLUNAS SÃO: Nº Nome do Funcionário CPF CARTÃO VT - Converter dados para número inteiro sem notação científica. APÓS ISSO, PADRONIZE OS DADOS DA COLUNA &quot;CPF&quot; NO FORMATO: [000.000.000-00]; E CRIE UMA NOVA COLUNA DE NOME &quot;Nome do Funcionário e CPF&quot; onde nesta coluna você irá escrever o &quot;CPF&quot; padronizado e os nomes da coluna &quot;Nome do Funcionário&quot; no formato: [000.000.000-00 - NOME DO FUNCIONÁRIO] ** CRIE NOVAS COLUNAS DE NOME: PO PS VA VT FGTS FP CP DIV. FP/CP NÃO PREENCHA NENHUM VALOR NESTAS NOVAS COLUNAS. DÊ NOME DA TABELA DE: TABELA BASE. ** TABELA EM FORMATO VISUAL">1. Transcrever e padronizar dados do documento.</li>
+          <li data-prompt="se [valor] da coluna &quot;Nome do Funcionário&quot; da tabela base for igual ao [valor] da coluna &quot;Nome&quot; do documento, digite OK na coluna PO. Se for diferente, digite N/L. ** Ignore diferenças de acentuação (ç/c, ã/a, á/a, é/e, í/i, ó/o, ú/u, etc.) ** Ignore diferenças de escrita (ç/c, etc. Exemplo: CONCEIÇAO = CONCEICAO) ** Ignore diferenças de capitalização">2. Comparar nomes e preencher coluna PO.</li>
+          <li data-prompt="se [valor] da coluna &quot;Nome do Funcionário&quot; da tabela base for igual ao [valor] da coluna &quot;Nome&quot; do documento, digite OK na coluna PS. Se for diferente, digite N/L. ** Ignore diferenças de acentuação (ç/c, ã/a, á/a, é/e, í/i, ó/o, ú/u, etc.) ** Ignore diferenças de escrita (ç/c, etc. Exemplo: CONCEIÇAO = CONCEICAO) ** Ignore diferenças de capitalização">3. Comparar nomes e preencher coluna PS.</li>
+          <li data-prompt="Se o valor da coluna &quot;CPF&quot; da tabela base for igual ao valor da coluna &quot;CPF&quot; do documento, digite OK na coluna VA. Se for diferente, digite N/L. A validação é unicamente por CPF. **PRESERVAR OBRIGATORIAMENTE**: Todos os dados já processados na tabela anterior devem ser mantidos integralmente. O formato do CPF em ambas as fontes é [000.000.000-00].">4. Comparar CPF e preencher coluna VA.</li>
+          <li data-prompt="se [valor] da coluna &quot;Nome do Funcionário&quot; da tabela base for igual ao [valor] da coluna &quot;Nome do Funcionário&quot; documento, digite OK na coluna VT da tabela base. Se for diferente, digite N/L. ** Ignore diferenças de acentuação (ç/c, ã/a, á/a, é/e, í/i, ó/o, ú/u, etc.) ** Ignore diferenças de escrita (ç/c, etc. Exemplo: CONCEIÇAO = CONCEICAO) ** Ignore diferenças de capitalização --- ** Não altere os dados já preenchidos da coluna &quot;VT&quot; da tabela base já preenchidos na 1ª Ação. ** se [valor] da coluna &quot;Nome do Funcionário e CPF&quot; da tabela base for igual ao [valor] da coluna &quot;Nome&quot; documento, digite OK na coluna VT da tabela base. Se for diferente, digite N/L. --- ** Não altere os dados já preenchidos da coluna &quot;VT&quot; da tabela base já preenchidos na 2ª Ação. ** se [valor] da coluna &quot;CARTÃO VT&quot; da tabela base for igual ao [valor] da coluna &quot;CARTÃO&quot; documento &quot;Comprovante de Pagamento&quot;, digite OK na coluna VT da tabela base. Se for diferente, digite N/L. *** Observe que tem 2 relatórios com formatação diferente para análise. *** Output somente da tabela visual. Sem justificativas e comentários. ** PRESERVAR OBRIGATORIAMENTE**: Todos os dados já processados na tabela anterior devem ser mantidos integralmente ** Na coluna VT da tabela base só podem ser identificados dois valore: OK e N/L obrigatoriamente. ** Não transferir [valor] de outra coluna para a VT.">5. Validar coluna VT em 3 etapas.</li>
+          <li data-prompt="se [valor] da coluna &quot;Nome do Funcionário&quot; da tabela base for igual ao [valor] da coluna &quot;Nome Trabalhador&quot; do documento, digite OK na coluna FGTS da tabela base. Se for diferente, digite N/L. ** Ignore diferenças de acentuação (ç/c, ã/a, á/a, é/e, í/i, ó/o, ú/u, etc.) ** Ignore diferenças de escrita (ç/c, etc. Exemplo: CONCEIÇAO = CONCEICAO) ** Ignore diferenças de capitalização --- ** Não altere os dados já preenchidos da coluna &quot;FGTS&quot; da tabela base já preenchidos na 1ª Ação. ** se [valor] da coluna &quot;CPF&quot; da tabela base for igual ao [valor] da coluna &quot;CPF&quot; documento, digite OK na coluna FGTS da tabela base. Se for diferente, digite N/L. --- *** Output somente da tabela visual. Sem justificativas e comentários. ** PRESERVAR OBRIGATORIAMENTE**: Todos os dados já processados na tabela anterior devem ser mantidos integralmente ** Na coluna FGTS da tabela base só podem ser identificados dois valores: OK e N/L obrigatoriamente. ** Não transferir [valor] de outra coluna para a FGTS.">6. Validar coluna FGTS em 2 etapas.</li>
+          <li data-prompt="TAREFA: Análise ETL para correspondência entre TABELA BASE e dados da Folha de Pagamento para extração do VALOR LÍQUIDO
+
+ESTRATÉGIA ETL (EXTRACT-TRANSFORM-LOAD):
+
+EXTRACT (Extração):
+1. Da TABELA BASE extrair:
+   - Coluna &quot;CPF&quot;
+2. Do documento Folha de Pagamento extrair:
+   - CPF (formato 000.000.000-00) localizado após &quot;CPF:&quot; em cada registro de funcionário
+   - VALOR LÍQUIDO localizado na linha que contém &quot;Líquido:&quot; no final de cada registro
+
+TRANSFORM (Transformação e Normalização):
+
+PARA CPF:
+1. Remover espaços em branco no início e fim
+2. Normalizar formato: remover pontos e hífens, manter apenas números
+3. Converter para string padrão para comparação
+4. Tratar casos especiais:
+   - Valores em branco/vazio → resultado &quot;N/L&quot; na coluna &quot;FP&quot;
+
+PARA VALOR LÍQUIDO:
+1. Localizar a linha que termina com &quot;Líquido:&quot; seguida do valor
+2. Extrair o valor numérico após &quot;Líquido:&quot;
+3. Normalizar formato:
+   - Manter formato decimal com vírgula (padrão brasileiro)
+   - Remover espaços extras
+   - Preservar casas decimais (ex: 1.433,87)
+4. Tratar casos especiais:
+   - Valores negativos ou zerados devem ser mantidos como estão
+   - Valores não encontrados → resultado &quot;N/L&quot; na coluna &quot;FP&quot;
+
+LOAD (Comparação e Carga com VALIDAÇÃO POR CPF):
+
+Para cada funcionário da TABELA BASE:
+
+1. **VALIDAÇÃO CPF E EXTRAÇÃO DE VALOR:**
+   - Normalizar CPF da TABELA BASE
+   - Buscar CPF correspondente no documento Folha de Pagamento
+   - Se CPF encontrado: extrair o VALOR LÍQUIDO do mesmo registro
+   - Se CPF não encontrado: preencher coluna &quot;FP&quot; com &quot;N/L&quot;
+
+2. **PADRÃO DE LOCALIZAÇÃO DOS DADOS:**
+   - **CPF**: Localizado na linha que contém &quot;CPF: 000.000.000-00&quot;
+   - **VALOR LÍQUIDO**: Localizado na linha que termina com &quot;Líquido: 0.000,00&quot;
+   - **Estrutura**: Cada funcionário tem um bloco de dados que termina com a linha do líquido
+
+3. **CASOS ESPECÍFICOS DE VALIDAÇÃO:**
+   - **Caso A**: CPF encontrado → extrair e transcrever valor líquido exato
+   - **Caso B**: CPF não encontrado → preencher coluna &quot;FP&quot; com &quot;N/L&quot;
+   - **Caso C**: CPF vazio na tabela base → preencher coluna &quot;FP&quot; com &quot;N/L&quot;
+
+4. **DECISÃO FINAL:**
+   - Se CPF vazio: coluna &quot;FP&quot; = &quot;N/L&quot;
+   - Se CPF encontrado: coluna &quot;FP&quot; = valor líquido (formato: 0.000,00)
+   - Se CPF não encontrado: coluna &quot;FP&quot; = &quot;N/L&quot;
+
+REGRAS DE EXTRAÇÃO:
+- **CPF é O CRITÉRIO DE BUSCA**: Localizar funcionário pelo CPF
+- **VALOR LÍQUIDO é O DADO ALVO**: Extrair valor exato da linha &quot;Líquido:&quot;
+- **CORRESPONDÊNCIA EXATA**: CPF deve ser encontrado exatamente no documento
+- **FORMATO PRESERVADO**: Manter formato brasileiro do valor (0.000,00)
+
+PROCESSO DE VALIDAÇÃO OBRIGATÓRIO:
+- Criar log de comparação mostrando:
+  * CPF original da tabela base
+  * CPF normalizado
+  * Status da busca no documento (encontrado/não encontrado)
+  * Valor líquido extraído (se encontrado) ou &quot;N/L&quot;
+  * Justificativa detalhada
+
+CASOS DE TESTE OBRIGATÓRIOS:
+- CPF vazio → coluna &quot;FP&quot; = &quot;N/L&quot;
+- CPF encontrado → coluna &quot;FP&quot; com valor líquido exato
+- CPF não encontrado → coluna &quot;FP&quot; = &quot;N/L&quot;
+
+FORMATO DE SAÍDA OBRIGATÓRIO:
+1. **Tabela original COMPLETA com coluna &quot;FP&quot; preenchida com valores líquidos ou &quot;N/L&quot; em formato visual**
+
+REGRAS FINAIS:
+- **VALIDAÇÃO ÚNICA**: Somente por CPF
+- **EXTRAÇÃO DE VALOR**: Transcrever valor líquido exato
+- **&quot;N/L&quot;** para: CPFs vazios ou não encontrados
+- **VALOR NUMÉRICO** quando CPF for encontrado no documento
+- **PREENCHER A COLUNA &quot;FP&quot;** na TABELA BASE com os valores líquidos extraídos ou &quot;N/L&quot;
+
+EXEMPLO DE EXTRAÇÃO:
+- CPF encontrado: 096.017.275-07 → Valor líquido: 1.433,87
+- CPF encontrado: 326.789.405-00 → Valor líquido: 1.290,57
+- CPF encontrado: 015.761.375-54 → Valor líquido: 1.209,60
+- CPF não encontrado: 000.000.000-00 → &quot;N/L&quot;">7. Extrair valor líquido da folha de pagamento (FP).</li>
+          <li data-prompt="# TAREFA: Análise ETL para correspondência entre TABELA BASE e dados do Comprovante de Pagamento
+
+## 🎯 OBJETIVO PRINCIPAL:
+Preencher a coluna &quot;CP&quot; (Comprovante de Pagamento) na TABELA BASE através da correspondência exata entre os dados da tabela e o documento de comprovante.
+
+## ⚠️ PRESERVAÇÃO OBRIGATÓRIA:
+TODOS os dados já preenchidos na TABELA BASE devem ser RIGOROSAMENTE PRESERVADOS. Apenas a coluna &quot;CP&quot; deve ser preenchida/atualizada.
+
+## 🔒 PROTOCOLO INFALÍVEL DE CORRESPONDÊNCIA:
+
+### ETAPA 1 - EXTRAÇÃO TOTAL E ABSOLUTA:
+
+REGISTROS_DOCUMENTO = []
+PARA CADA linha no documento comprovante:
+SE linha contém padrão &quot;XXX.XXX.XXX-XX - NOME&quot;:
+nome_extraido = EXATAMENTE como aparece na coluna &quot;Nome&quot;
+valor_extraido = EXATAMENTE como aparece na coluna &quot;Valor(R$)&quot;
+ADICIONAR ao REGISTROS_DOCUMENTO: {nome: nome_extraido, valor: valor_extraido}
+
+TOTAL_EXTRAIDO = contar(REGISTROS_DOCUMENTO)
+CONFIRMAR: &quot;Extraídos {TOTAL_EXTRAIDO} registros do documento&quot;
+
+### ETAPA 2 - CORRESPONDÊNCIA CARACTERE POR CARACTERE:
+
+PARA CADA linha da TABELA BASE:
+nome_base = coluna &quot;Nome do Funcionário e Cpf&quot;
+
+SE nome_base está vazio OU é null OU contém apenas espaços:
+    coluna_CP = &quot;N/L&quot;
+    CONTINUAR para próxima linha
+
+# BUSCA EXATA OBRIGATÓRIA
+encontrado = FALSO
+PARA CADA registro em REGISTROS_DOCUMENTO:
+    SE registro.nome == nome_base (comparação BYTE a BYTE):
+        coluna_CP = registro.valor
+        encontrado = VERDADEIRO
+        BREAK (sair do loop)
+
+SE encontrado == FALSO:
+    coluna_CP = &quot;N/L&quot;
+
+
+## 🔍 ALGORITMO DE COMPARAÇÃO INFALÍVEL:
+
+### FUNÇÃO DE COMPARAÇÃO EXATA:
+
+FUNÇÃO comparar_exato(string1, string2):
+SE comprimento(string1) != comprimento(string2):
+RETORNAR FALSO
+
+PARA i = 0 até comprimento(string1)-1:
+    SE string1[i] != string2[i]:
+        RETORNAR FALSO
+
+RETORNAR VERDADEIRO
+
+
+### REGRAS DE COMPARAÇÃO:
+1. **ZERO TOLERÂNCIA**: Nenhuma diferença é aceita
+2. **CASE SENSITIVE**: 'A' ≠ 'a'
+3. **ESPAÇOS CONTAM**: ' ' é diferente de ausência de espaço
+4. **ACENTOS OBRIGATÓRIOS**: 'á' ≠ 'a'
+5. **PONTUAÇÃO EXATA**: '.' e '-' devem estar nas posições corretas
+
+## 📋 PROCESSO DE EXECUÇÃO OBRIGATÓRIO:
+
+### PASSO 1 - LEITURA COMPLETA:
+- Ler TODAS as linhas do documento comprovante
+- Extrair TODOS os registros que seguem o padrão CPF
+- NÃO filtrar, NÃO pular, NÃO assumir
+
+### PASSO 2 - MAPEAMENTO DIRETO:
+- Criar lista completa de todos os registros encontrados
+- Manter formato original EXATO de cada nome e valor
+
+### PASSO 3 - CORRESPONDÊNCIA LINHA A LINHA:
+
+
+## 🚨 REGRAS CRÍTICAS ABSOLUTAS:
+
+### REGRA 1 - LEITURA TOTAL:
+- **OBRIGATÓRIO**: Processar CADA linha do documento
+- **PROIBIDO**: Pular linhas ou fazer suposições
+- **VALIDAÇÃO**: Contar quantos registros foram extraídos
+
+### REGRA 2 - CORRESPONDÊNCIA PERFEITA:
+- **ÚNICO CRITÉRIO**: Igualdade absoluta caractere por caractere
+- **SEM NORMALIZAÇÃO**: Não alterar espaços, acentos ou case
+- **SEM APROXIMAÇÃO**: Não usar &quot;parecido&quot; ou &quot;similar&quot;
+
+### REGRA 3 - RESULTADO BINÁRIO:
+- **SE IGUAL**: Preencher com valor do documento
+- **SE DIFERENTE**: Preencher com &quot;N/L&quot;
+- **SEM MEIO TERMO**: Não existe &quot;quase igual&quot;
+
+### REGRA 4 - PRESERVAÇÃO TOTAL:
+- **MANTER**: Todos os dados existentes na tabela base
+- **ALTERAR**: Apenas a coluna &quot;CP&quot;
+- **FORMATO**: Manter estrutura original da tabela
+
+## 📤 SAÍDA OBRIGATÓRIA:
+
+### FORMATO DA RESPOSTA:
+1. **RELATÓRIO DE EXTRAÇÃO**: &quot;Extraídos X registros do documento comprovante&quot;
+2. **TABELA COMPLETA**: Todos os dados originais + coluna CP preenchida
+3. **ESTATÍSTICA FINAL**: &quot;X correspondências encontradas, Y marcadas como N/L&quot;
+
+### VALIDAÇÃO FINAL:
+- Verificar se TODAS as linhas da tabela base têm a coluna CP preenchida
+- Confirmar que nenhum dado original foi alterado
+- Garantir que apenas valores &quot;exatos&quot; ou &quot;N/L&quot; estão na coluna CP
+
+## 🔧 PROTOCOLO DE DEPURAÇÃO (SE NECESSÁRIO):
+
+SE algum registro esperado não for encontrado:
+
+LISTAR todos os nomes extraídos do documento
+MOSTRAR o nome específico da tabela base que não foi encontrado
+COMPARAR caractere por caractere para identificar diferenças
+CONFIRMAR se realmente são idênticos ou há diferenças invisíveis
+
+
+**GARANTIA ABSOLUTA**: Se dois strings são EXATAMENTE iguais (byte por byte), a correspondência DEVE ser encontrada. Caso contrário, há diferença real entre os dados.">8. Preencher coluna CP por correspondência exata.</li>
+          <li data-prompt="Analise os valores das colunas FP e CP, se houver divergência entre os valores escreva DIV, se os valores forem exatamente iguais em ambas a colunas, escreva OK. ** Preserve a estrutura da planilha na sua forma original.">9. Comparar colunas FP e CP e preencher DIV.</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main id="app">
+      <h1>Assistente IA Gestor de Contrato</h1>
+      
+      <div id="response-container" aria-live="polite">
+        <!-- Chat messages will be appended here -->
+      </div>
+
+      <!-- File Display Area -->
+      <div id="file-display" class="hidden">
+        <span id="file-name"></span>
+        <button id="remove-file-button" aria-label="Remove attached file">&times;</button>
+      </div>
+
+      <!-- Anonymization Option -->
+      <div id="options-container">
+        <input type="checkbox" id="anonymize-checkbox" name="anonymize" checked>
+        <label for="anonymize-checkbox">Anonimizar dados sensíveis (LGPD)</label>
+      </div>
+
+      <div id="input-container">
+        <!-- Attach Button -->
+        <label for="file-input" id="attach-button" aria-label="Attach file">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.59a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+          </svg>
+        </label>
+        <input type="file" id="file-input" class="hidden" accept=".pdf,.xlsx,.xls,.csv,.txt">
+        
+        <textarea id="prompt-input" placeholder="Ask me anything..." rows="3"></textarea>
+
+        <button id="chat-toggle-button" aria-label="Toggle temporary chat">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </button>
+        
+        <button id="send-button" aria-label="Send prompt">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m22 2-7 20-4-9-9-4Z"/><path d="m22 2-11 11"/>
+          </svg>
+        </button>
+      </div>
+      <div id="loader" class="hidden" role="status" aria-label="Loading response"></div>
+    </main>
+  </div>
+
+  <!-- About Modal -->
+  <div id="about-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button id="modal-close-button" class="modal-close-button" aria-label="Fechar modal">&times;</button>
+      <div class="modal-content-grid">
+        <div class="modal-description">
+          <h1 id="about-modal-title">Sobre o Projeto</h1>
+          <p>
+            Este projeto é um assistente de IA projetado para otimizar e automatizar tarefas de gestão de contratos.
+          </p>
+          <p>
+            Utilizando a API do Gemini, ele é capaz de analisar documentos, extrair informações, padronizar dados e realizar validações complexas, reduzindo significativamente o trabalho manual e o risco de erros.
+          </p>
+        </div>
+        <div class="modal-participants">
+          <h3>Participantes</h3>
+          <ul class="participants-list">
+            <li>
+              <strong>Secretário</strong>
+              <ul>
+                <li>Rodrigo Pimentel - SAEB</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Superintendente</strong>
+              <ul>
+                <li>Luis Fernando Leite - SGI</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Idealizadores</strong>
+              <ul>
+                <li>Anderso Vasconcelos - SGI/DPITIC</li>
+                <li>Nome Idealizador 2</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Desenvolvimento Visual Web</strong>
+
+              <ul>
+                <li>Jaqueline Brandão - SGI/DPITIC/CIT</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Desenvolvimento LLM - IA</strong>
+              <ul>
+                <li>Pedro Maurício de Jesus - SGI/DPITIC/CIT</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
